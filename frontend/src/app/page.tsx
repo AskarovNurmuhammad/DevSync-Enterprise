@@ -1,34 +1,47 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect } from 'react';
+import Link from 'next/link';
+import { useAuthStore } from '@/store/authStore';
 import { 
   Kanban, 
   Layers, 
   Zap, 
   ShieldCheck, 
-  Users, 
-  GitBranch, 
   Activity, 
   CheckCircle2, 
   Clock, 
   ArrowRight,
   Database,
-  Cpu
+  Cpu,
+  LogIn,
+  UserPlus,
+  LogOut,
+  User,
+  GitBranch
 } from 'lucide-react';
 
 export default function HomePage() {
+  const { user, isAuthenticated, logout, initializeAuth } = useAuthStore();
+
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
+
   const roadmap = [
-    { day: 'Day 1', title: 'System Architecture & Data Modeling', status: 'In Progress (Day 1)', current: true },
-    { day: 'Day 2', title: 'Multi-Tenant Auth & RBAC Security', status: 'Pending', current: false },
-    { day: 'Day 3', title: 'Core Business APIs & Dashboard Layout', status: 'Pending', current: false },
-    { day: 'Day 4', title: 'Advanced Filters, Pagination & S3 Storage', status: 'Pending', current: false },
-    { day: 'Day 5', title: 'WebSockets Live Board & Notifications', status: 'Pending', current: false },
-    { day: 'Day 6', title: 'Admin Analytics, Audit Logs & PDF Reports', status: 'Pending', current: false },
-    { day: 'Day 7', title: 'Docker Orchestration & CI/CD Production', status: 'Pending', current: false },
+    { day: 'Day 1', title: 'System Architecture & Data Modeling', status: 'Bajarildi ✓', current: false, completed: true },
+    { day: 'Day 2', title: 'Multi-Tenant Auth & RBAC Security', status: 'Bajarildi ✓ (Day 2)', current: true, completed: true },
+    { day: 'Day 3', title: 'Core Business APIs & Dashboard Layout', status: 'Kutilmoqda', current: false, completed: false },
+    { day: 'Day 4', title: 'Advanced Filters, Pagination & S3 Storage', status: 'Kutilmoqda', current: false, completed: false },
+    { day: 'Day 5', title: 'WebSockets Live Board & Notifications', status: 'Kutilmoqda', current: false, completed: false },
+    { day: 'Day 6', title: 'Admin Analytics, Audit Logs & PDF Reports', status: 'Kutilmoqda', current: false, completed: false },
+    { day: 'Day 7', title: 'Docker Orchestration & CI/CD Production', status: 'Kutilmoqda', current: false, completed: false },
   ];
 
   return (
     <main className="min-h-screen p-6 md:p-12 max-w-7xl mx-auto flex flex-col justify-between">
       {/* Header */}
-      <header className="flex justify-between items-center border-b border-slate-800 pb-6 mb-12">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800 pb-6 mb-12 gap-4">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-bold text-white shadow-lg shadow-blue-500/20">
             DS
@@ -41,10 +54,49 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+        {/* Auth / Action Buttons */}
+        <div className="flex items-center gap-3">
+          {isAuthenticated && user ? (
+            <div className="flex items-center gap-3 bg-slate-900/80 border border-slate-800 py-1.5 px-3 rounded-xl">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-blue-600/30 text-blue-400 border border-blue-500/30 flex items-center justify-center text-xs font-bold">
+                  {user.firstName?.[0] || 'U'}
+                </div>
+                <div className="text-left text-xs">
+                  <div className="font-semibold text-slate-200">{user.firstName} {user.lastName}</div>
+                  <div className="text-[10px] text-slate-400">{user.email}</div>
+                </div>
+              </div>
+              <button
+                onClick={logout}
+                title="Chiqish"
+                className="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-rose-400 rounded-lg transition-colors ml-1 cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700/60 transition-all"
+              >
+                <LogIn className="w-3.5 h-3.5 text-slate-400" />
+                Kirish
+              </Link>
+              <Link
+                href="/register"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20 transition-all"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                Ro‘yxatdan o‘tish
+              </Link>
+            </div>
+          )}
+
+          <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 ml-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Day 1 Active
+            Day 2 Active
           </span>
         </div>
       </header>
@@ -66,6 +118,24 @@ export default function HomePage() {
           multi-tenant organizations, and WebSocket synchronizations into one lightning-fast workspace.
         </p>
 
+        {/* CTA Buttons */}
+        <div className="flex flex-wrap items-center gap-4 mb-10">
+          <Link
+            href="/register"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-xl shadow-blue-600/25 transition-all"
+          >
+            Bepul Boshlash <ArrowRight className="w-4 h-4" />
+          </Link>
+          <a
+            href="http://localhost:4000/api/docs"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-800 font-semibold text-sm transition-all"
+          >
+            Swagger API Docs ↗
+          </a>
+        </div>
+
         {/* Feature Badges */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl">
           <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4 flex items-center gap-3">
@@ -79,7 +149,7 @@ export default function HomePage() {
             <ShieldCheck className="w-5 h-5 text-indigo-400" />
             <div>
               <div className="text-xs text-slate-400">Security</div>
-              <div className="text-sm font-semibold text-white">RBAC Guarded</div>
+              <div className="text-sm font-semibold text-white">JWT + RBAC Guard</div>
             </div>
           </div>
           <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4 flex items-center gap-3">
@@ -109,8 +179,9 @@ export default function HomePage() {
             </h3>
             <p className="text-xs text-slate-400 mt-1">Har kuni bitta to'liq modul va GitHub commit bilan yuritiladi</p>
           </div>
-          <div className="text-xs font-mono text-slate-400 bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
-            Sprint Progress: 14% (Day 1 / 7)
+          <div className="text-xs font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/50 px-3 py-1.5 rounded-lg flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+            Sprint Progress: 28% (Day 2 / 7)
           </div>
         </div>
 
@@ -119,21 +190,26 @@ export default function HomePage() {
             <div 
               key={idx} 
               className={`p-4 rounded-xl border transition-all ${
-                item.current 
-                  ? 'bg-blue-950/30 border-blue-500/50 shadow-lg shadow-blue-500/10' 
-                  : 'bg-slate-900/30 border-slate-800/60 opacity-80'
+                item.completed
+                  ? 'bg-emerald-950/20 border-emerald-500/40 shadow-lg shadow-emerald-500/5'
+                  : item.current 
+                    ? 'bg-blue-950/30 border-blue-500/50 shadow-lg shadow-blue-500/10' 
+                    : 'bg-slate-900/30 border-slate-800/60 opacity-80'
               }`}
             >
               <div className="flex justify-between items-center mb-2">
                 <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${
-                  item.current ? 'bg-blue-500 text-white' : 'bg-slate-800 text-slate-400'
+                  item.completed 
+                    ? 'bg-emerald-600 text-white' 
+                    : item.current 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-slate-800 text-slate-400'
                 }`}>
                   {item.day}
                 </span>
-                {item.current ? (
-                  <span className="text-[11px] text-blue-400 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping"></span>
-                    Jarayonda
+                {item.completed ? (
+                  <span className="text-[11px] text-emerald-400 flex items-center gap-1 font-medium">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Tayyor
                   </span>
                 ) : (
                   <span className="text-[11px] text-slate-500">Kutilmoqda</span>
