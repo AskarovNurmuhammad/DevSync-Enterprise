@@ -17,7 +17,7 @@ import {
   LogIn,
   UserPlus,
   LogOut,
-  User,
+  LayoutDashboard,
   GitBranch
 } from 'lucide-react';
 
@@ -30,8 +30,8 @@ export default function HomePage() {
 
   const roadmap = [
     { day: 'Day 1', title: 'System Architecture & Data Modeling', status: 'Bajarildi ✓', current: false, completed: true },
-    { day: 'Day 2', title: 'Multi-Tenant Auth & RBAC Security', status: 'Bajarildi ✓ (Day 2)', current: true, completed: true },
-    { day: 'Day 3', title: 'Core Business APIs & Dashboard Layout', status: 'Kutilmoqda', current: false, completed: false },
+    { day: 'Day 2', title: 'Multi-Tenant Auth & RBAC Security', status: 'Bajarildi ✓', current: false, completed: true },
+    { day: 'Day 3', title: 'Core Business APIs & Dashboard Layout', status: 'Bajarildi ✓ (Day 3)', current: true, completed: true },
     { day: 'Day 4', title: 'Advanced Filters, Pagination & S3 Storage', status: 'Kutilmoqda', current: false, completed: false },
     { day: 'Day 5', title: 'WebSockets Live Board & Notifications', status: 'Kutilmoqda', current: false, completed: false },
     { day: 'Day 6', title: 'Admin Analytics, Audit Logs & PDF Reports', status: 'Kutilmoqda', current: false, completed: false },
@@ -57,23 +57,26 @@ export default function HomePage() {
         {/* Auth / Action Buttons */}
         <div className="flex items-center gap-3">
           {isAuthenticated && user ? (
-            <div className="flex items-center gap-3 bg-slate-900/80 border border-slate-800 py-1.5 px-3 rounded-xl">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-blue-600/30 text-blue-400 border border-blue-500/30 flex items-center justify-center text-xs font-bold">
+            <div className="flex items-center gap-3">
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20 transition-all"
+              >
+                <LayoutDashboard className="w-3.5 h-3.5" />
+                Dashboardga o‘tish
+              </Link>
+              <div className="flex items-center gap-2 bg-slate-900/80 border border-slate-800 py-1.5 px-3 rounded-xl">
+                <div className="w-6 h-6 rounded-lg bg-blue-600/30 text-blue-400 border border-blue-500/30 flex items-center justify-center text-xs font-bold">
                   {user.firstName?.[0] || 'U'}
                 </div>
-                <div className="text-left text-xs">
-                  <div className="font-semibold text-slate-200">{user.firstName} {user.lastName}</div>
-                  <div className="text-[10px] text-slate-400">{user.email}</div>
-                </div>
+                <button
+                  onClick={logout}
+                  title="Chiqish"
+                  className="p-1 hover:bg-slate-800 text-slate-400 hover:text-rose-400 rounded-lg transition-colors cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
               </div>
-              <button
-                onClick={logout}
-                title="Chiqish"
-                className="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-rose-400 rounded-lg transition-colors ml-1 cursor-pointer"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
             </div>
           ) : (
             <div className="flex items-center gap-2">
@@ -96,7 +99,7 @@ export default function HomePage() {
 
           <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 ml-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Day 2 Active
+            Day 3 Active
           </span>
         </div>
       </header>
@@ -121,10 +124,10 @@ export default function HomePage() {
         {/* CTA Buttons */}
         <div className="flex flex-wrap items-center gap-4 mb-10">
           <Link
-            href="/register"
+            href={isAuthenticated ? "/dashboard" : "/register"}
             className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-xl shadow-blue-600/25 transition-all"
           >
-            Bepul Boshlash <ArrowRight className="w-4 h-4" />
+            {isAuthenticated ? 'Dashboardga Kirish' : 'Bepul Boshlash'} <ArrowRight className="w-4 h-4" />
           </Link>
           <a
             href="http://localhost:4000/api/docs"
@@ -146,10 +149,10 @@ export default function HomePage() {
             </div>
           </div>
           <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4 flex items-center gap-3">
-            <ShieldCheck className="w-5 h-5 text-indigo-400" />
+            <Kanban className="w-5 h-5 text-indigo-400" />
             <div>
-              <div className="text-xs text-slate-400">Security</div>
-              <div className="text-sm font-semibold text-white">JWT + RBAC Guard</div>
+              <div className="text-xs text-slate-400">Board</div>
+              <div className="text-sm font-semibold text-white">Live Kanban</div>
             </div>
           </div>
           <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4 flex items-center gap-3">
@@ -181,7 +184,7 @@ export default function HomePage() {
           </div>
           <div className="text-xs font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/50 px-3 py-1.5 rounded-lg flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-            Sprint Progress: 28% (Day 2 / 7)
+            Sprint Progress: 42% (Day 3 / 7)
           </div>
         </div>
 
@@ -209,7 +212,7 @@ export default function HomePage() {
                 </span>
                 {item.completed ? (
                   <span className="text-[11px] text-emerald-400 flex items-center gap-1 font-medium">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Tayyor
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Bajarildi
                   </span>
                 ) : (
                   <span className="text-[11px] text-slate-500">Kutilmoqda</span>
