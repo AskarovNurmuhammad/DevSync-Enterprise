@@ -68,7 +68,7 @@ flowchart TD
 - [x] **1-kun (Bugun):** Arxitektura dizayni, Monorepo strukturasi, Docker (PostgreSQL & Redis), Prisma ma'lumotlar bazasi sxemasi, Frontend boshlang'ich UI.
 - [x] **2-kun:** Multi-Tenant Autentifikatsiya (JWT, Refresh Token), RBAC rollar (Owner, Admin, Member, Viewer), Login & Register sahifalari, Zustand Auth Store.
 - [x] **3-kun:** Asosiy Biznes API (Workspaces, Projects, Tasks CRUD) va Frontend Dashboard (Responsive Sidebar, Navbar, Workspace Switcher, Interaktiv Kanban doskasi).
-- [ ] **4-kun:** Kengaytirilgan filtrlar, Server-side pagination, Fayl yuklash (S3/Cloudinary/Local), Redis keshlash.
+- [x] **4-kun:** Kengaytirilgan qidiruv (`Ctrl+K`), Server-side pagination, Vazifa tafsilotlari modali, Izohlar (Comments), Fayl yuklash (Uploads) va Keshlash (Cache).
 - [ ] **5-kun:** Real-Time WebSockets (Interaktiv Drag & Drop Kanban board, Jonli yangilanishlar va bildirishnomalar).
 - [ ] **6-kun:** Katta Admin Analitika paneli, Audit loglar, Hisobotlarni PDF/Excel ko'rinishida eksport qilish.
 - [ ] **7-kun:** Docker Compose orkestratsiyasi, CI/CD pipeline, Testlar va yakuniy Production deployment.

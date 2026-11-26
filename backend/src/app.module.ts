@@ -1,11 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
+import { CacheModule } from './cache/cache.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { WorkspacesModule } from './workspaces/workspaces.module';
 import { ProjectsModule } from './projects/projects.module';
 import { TasksModule } from './tasks/tasks.module';
+import { CommentsModule } from './comments/comments.module';
+import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
   imports: [
@@ -14,11 +17,14 @@ import { TasksModule } from './tasks/tasks.module';
       envFilePath: ['.env', '../.env'],
     }),
     PrismaModule,
+    CacheModule,
     AuthModule,
     UsersModule,
     WorkspacesModule,
     ProjectsModule,
     TasksModule,
+    CommentsModule,
+    UploadsModule,
   ],
 })
 export class AppModule {}

@@ -28,6 +28,9 @@ dist/
 backend/prisma/*.db
 backend/prisma/*.db-journal
 
+# Uploads
+backend/uploads/
+
 # IDEs
 .idea/
 .vscode/

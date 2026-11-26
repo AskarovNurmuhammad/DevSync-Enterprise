@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useWorkspaceStore } from '@/store/workspaceStore';
+import CommandPalette from '@/components/CommandPalette';
+import TaskDetailModal from '@/components/TaskDetailModal';
 import {
   Layers,
   FolderKanban,
@@ -44,6 +46,18 @@ export default function DashboardLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
   const [showProjectModal, setShowProjectModal] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setShowCommandPalette((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
 
   // New Workspace form state
   const [wsName, setWsName] = useState('');
@@ -274,11 +288,14 @@ export default function DashboardLayout({
 
           {/* Right Header items */}
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 bg-slate-900/90 border border-slate-800 px-3 py-1.5 rounded-xl text-xs text-slate-400 w-56">
+            <button
+              onClick={() => setShowCommandPalette(true)}
+              className="hidden sm:flex items-center gap-2 bg-slate-900/90 hover:bg-slate-800/90 border border-slate-800 px-3 py-1.5 rounded-xl text-xs text-slate-400 w-56 transition-colors cursor-pointer"
+            >
               <Search className="w-3.5 h-3.5 text-slate-500" />
-              <span>Qidiruv...</span>
-              <kbd className="ml-auto text-[10px] bg-slate-800 px-1 rounded text-slate-400 font-mono">⌘K</kbd>
-            </div>
+              <span>Tezkor qidiruv...</span>
+              <kbd className="ml-auto text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-400 font-mono">⌘K</kbd>
+            </button>
             <Link
               href="/"
               className="text-xs text-slate-400 hover:text-white px-2.5 py-1 rounded-lg hover:bg-slate-800/60 transition-colors"
@@ -424,6 +441,13 @@ export default function DashboardLayout({
           </div>
         </div>
       )}
+
+      {/* Command Palette & Task Detail Modal */}
+      <CommandPalette
+        isOpen={showCommandPalette}
+        onClose={() => setShowCommandPalette(false)}
+      />
+      <TaskDetailModal />
     </div>
   );
 }
