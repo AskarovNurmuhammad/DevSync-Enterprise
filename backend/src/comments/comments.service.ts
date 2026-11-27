@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
+import { EventsGateway } from '../realtime/events.gateway';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 
 @Injectable()
@@ -8,6 +10,8 @@ export class CommentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cache: CacheService,
+    private readonly eventsGateway: EventsGateway,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async addComment(taskId: string, userId: string, dto: CreateCommentDto) {
@@ -59,6 +63,23 @@ export class CommentsService {
     });
 
     await this.cache.invalidateByPrefix(`tasks:project:${task.projectId}`);
+    this.eventsGateway.emitToProject(task.projectId, 'comment:added', {
+      taskId,
+      comment,
+    });
+
+    const recipientId = task.assigneeId && task.assigneeId !== userId ? task.assigneeId : task.creatorId !== userId ? task.creatorId : null;
+    if (recipientId) {
+      await this.notifications.createNotification({
+        userId: recipientId,
+        workspaceId: task.project.workspaceId,
+        title: `Yangi izoh (${task.project.key}-${task.taskNumber})`,
+        message: `${comment.user.firstName}: ${dto.content.slice(0, 80)}`,
+        type: 'COMMENT_ADDED',
+        entityId: taskId,
+      });
+    }
+
     return comment;
   }
 

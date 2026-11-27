@@ -49,6 +49,9 @@ export default function DashboardKanbanPage() {
   const [taskDesc, setTaskDesc] = useState('');
   const [taskPriority, setTaskPriority] = useState<TaskPriority>('MEDIUM');
 
+  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
+  const [dragOverColumn, setDragOverColumn] = useState<TaskStatus | null>(null);
+
   // Debounced server-side search & filtering
   useEffect(() => {
     if (!activeProject || !activeWorkspace) return;
@@ -248,7 +251,30 @@ export default function DashboardKanbanPage() {
             return (
               <div
                 key={col.id}
-                className="bg-[#0b101c]/80 border border-slate-800/80 rounded-2xl p-3 flex flex-col h-[calc(100vh-14.5rem)] min-w-[280px]"
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (dragOverColumn !== col.id) setDragOverColumn(col.id);
+                }}
+                onDragLeave={() => {
+                  if (dragOverColumn === col.id) setDragOverColumn(null);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragOverColumn(null);
+                  const droppedTaskId = e.dataTransfer.getData('text/plain') || draggedTaskId;
+                  if (droppedTaskId) {
+                    const existing = tasks.find((t) => t.id === droppedTaskId);
+                    if (existing && existing.status !== col.id) {
+                      updateTaskStatus(droppedTaskId, col.id);
+                    }
+                  }
+                  setDraggedTaskId(null);
+                }}
+                className={`bg-[#0b101c]/80 border rounded-2xl p-3 flex flex-col h-[calc(100vh-14.5rem)] min-w-[280px] transition-colors ${
+                  dragOverColumn === col.id
+                    ? 'border-blue-500/70 bg-blue-950/15'
+                    : 'border-slate-800/80'
+                }`}
               >
                 {/* Column Header */}
                 <div className="flex items-center justify-between pb-3 mb-2 border-b border-slate-800/60">
@@ -289,8 +315,19 @@ export default function DashboardKanbanPage() {
                     colTasks.map((task) => (
                       <div
                         key={task.id}
+                        draggable
+                        onDragStart={(e) => {
+                          setDraggedTaskId(task.id);
+                          e.dataTransfer.setData('text/plain', task.id);
+                        }}
+                        onDragEnd={() => {
+                          setDraggedTaskId(null);
+                          setDragOverColumn(null);
+                        }}
                         onClick={() => openTaskDetail(task.id)}
-                        className="bg-slate-900/90 hover:bg-slate-800/70 border border-slate-800 rounded-xl p-3 shadow-md hover:border-blue-500/40 transition-all group cursor-pointer"
+                        className={`bg-slate-900/90 hover:bg-slate-800/70 border border-slate-800 rounded-xl p-3 shadow-md hover:border-blue-500/40 transition-all group cursor-grab active:cursor-grabbing ${
+                          draggedTaskId === task.id ? 'opacity-50 scale-[0.98]' : ''
+                        }`}
                       >
                         {/* Top: Key & Priority */}
                         <div className="flex items-center justify-between mb-2">

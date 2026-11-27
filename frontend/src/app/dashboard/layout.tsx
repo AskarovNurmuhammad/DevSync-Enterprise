@@ -5,23 +5,23 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useWorkspaceStore } from '@/store/workspaceStore';
+import { useNotificationStore } from '@/store/notificationStore';
 import CommandPalette from '@/components/CommandPalette';
 import TaskDetailModal from '@/components/TaskDetailModal';
+import RealtimeManager from '@/components/RealtimeManager';
 import {
   Layers,
   FolderKanban,
   Plus,
-  CheckCircle2,
-  ChevronDown,
   LogOut,
-  Settings,
   Bell,
   Search,
   LayoutDashboard,
   Users,
   Menu,
   X,
-  Sparkles,
+  CheckCheck,
+  UserPlus,
 } from 'lucide-react';
 
 export default function DashboardLayout({
@@ -34,19 +34,36 @@ export default function DashboardLayout({
   const {
     workspaces,
     activeWorkspace,
+    workspaceMembers,
     selectWorkspace,
     createWorkspace,
     fetchWorkspaces,
+    inviteMember,
     projects,
     activeProject,
     selectProject,
     createProject,
+    openTaskDetail,
   } = useWorkspaceStore();
+
+  const {
+    notifications,
+    unreadCount,
+    isSocketConnected,
+    markAsRead,
+    markAllAsRead,
+  } = useNotificationStore();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
   const [showProjectModal, setShowProjectModal] = useState(false);
+  const [showMembersModal, setShowMembersModal] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState('MEMBER');
+  const [inviteFeedback, setInviteFeedback] = useState<{ type: 'ok' | 'err'; msg: string } | null>(null);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -185,6 +202,18 @@ export default function DashboardLayout({
                 <LayoutDashboard className="w-4 h-4 text-blue-400" />
                 <span>Kanban Doska</span>
               </Link>
+              <button
+                onClick={() => setShowMembersModal(true)}
+                className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs text-slate-400 hover:bg-slate-800/50 hover:text-white transition-colors cursor-pointer"
+              >
+                <span className="flex items-center gap-2.5">
+                  <Users className="w-4 h-4 text-indigo-400" />
+                  <span>Jamoa A‘zolari</span>
+                </span>
+                <span className="text-[10px] font-mono bg-slate-800 px-1.5 py-0.5 rounded text-slate-300">
+                  {workspaceMembers.length}
+                </span>
+              </button>
             </nav>
           </div>
 
@@ -287,15 +316,93 @@ export default function DashboardLayout({
           </div>
 
           {/* Right Header items */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 relative">
+            <span
+              className={`hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border ${
+                isSocketConnected
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                  : 'bg-slate-800/60 text-slate-400 border-slate-700/50'
+              }`}
+              title={isSocketConnected ? 'Real-Time WebSocket faol' : 'WebSocket ulanmagan'}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  isSocketConnected ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'
+                }`}
+              />
+              {isSocketConnected ? 'Live' : 'Offline'}
+            </span>
+
             <button
               onClick={() => setShowCommandPalette(true)}
-              className="hidden sm:flex items-center gap-2 bg-slate-900/90 hover:bg-slate-800/90 border border-slate-800 px-3 py-1.5 rounded-xl text-xs text-slate-400 w-56 transition-colors cursor-pointer"
+              className="hidden sm:flex items-center gap-2 bg-slate-900/90 hover:bg-slate-800/90 border border-slate-800 px-3 py-1.5 rounded-xl text-xs text-slate-400 w-48 lg:w-56 transition-colors cursor-pointer"
             >
               <Search className="w-3.5 h-3.5 text-slate-500" />
               <span>Tezkor qidiruv...</span>
               <kbd className="ml-auto text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-400 font-mono">⌘K</kbd>
             </button>
+
+            {/* Notifications Bell */}
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifications((prev) => !prev)}
+                className="relative p-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-slate-300 transition-colors cursor-pointer"
+                title="Bildirishnomalar"
+              >
+                <Bell className="w-4 h-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {showNotifications && (
+                <div className="absolute right-0 mt-2 w-80 bg-[#0d131f] border border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+                    <span className="text-xs font-bold text-white">Bildirishnomalar</span>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={markAllAsRead}
+                        className="text-[11px] text-blue-400 hover:text-blue-300 flex items-center gap-1 cursor-pointer"
+                      >
+                        <CheckCheck className="w-3.5 h-3.5" /> Barchasini o‘qish
+                      </button>
+                    )}
+                  </div>
+                  <div className="max-h-72 overflow-y-auto divide-y divide-slate-800/60">
+                    {notifications.length === 0 ? (
+                      <div className="p-6 text-center text-xs text-slate-500">
+                        Hozircha bildirishnomalar yo‘q
+                      </div>
+                    ) : (
+                      notifications.map((n) => (
+                        <button
+                          key={n.id}
+                          onClick={() => {
+                            markAsRead(n.id);
+                            if (n.entityId && n.type !== 'WORKSPACE_INVITE') {
+                              openTaskDetail(n.entityId);
+                            }
+                            setShowNotifications(false);
+                          }}
+                          className={`w-full text-left px-4 py-3 hover:bg-slate-900/70 transition-colors cursor-pointer ${
+                            !n.isRead ? 'bg-blue-950/20' : ''
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-semibold text-slate-200 truncate">{n.title}</span>
+                            {!n.isRead && <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />}
+                          </div>
+                          <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-2">{n.message}</p>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <Link
               href="/"
               className="text-xs text-slate-400 hover:text-white px-2.5 py-1 rounded-lg hover:bg-slate-800/60 transition-colors"
@@ -442,12 +549,111 @@ export default function DashboardLayout({
         </div>
       )}
 
-      {/* Command Palette & Task Detail Modal */}
+      {/* Modal: Workspace Members & Invite */}
+      {showMembersModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Users className="w-4 h-4 text-indigo-400" /> Jamoa A‘zolari ({workspaceMembers.length})
+              </h3>
+              <button
+                onClick={() => {
+                  setShowMembersModal(false);
+                  setInviteFeedback(null);
+                }}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Invite Form */}
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setInviteFeedback(null);
+                const res = await inviteMember(inviteEmail, inviteRole);
+                if (res.ok) {
+                  setInviteEmail('');
+                  setInviteFeedback({ type: 'ok', msg: 'A‘zo muvaffaqiyatli qo‘shildi!' });
+                } else {
+                  setInviteFeedback({ type: 'err', msg: res.error || 'Xatolik' });
+                }
+              }}
+              className="flex flex-col sm:flex-row gap-2 mb-4"
+            >
+              <input
+                type="email"
+                required
+                placeholder="Hamkasbingiz emaili..."
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                className="flex-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-blue-500"
+              />
+              <select
+                value={inviteRole}
+                onChange={(e) => setInviteRole(e.target.value)}
+                className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-blue-500"
+              >
+                <option value="MEMBER">MEMBER</option>
+                <option value="ADMIN">ADMIN</option>
+                <option value="VIEWER">VIEWER</option>
+              </select>
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold cursor-pointer"
+              >
+                <UserPlus className="w-3.5 h-3.5" /> Taklif
+              </button>
+            </form>
+
+            {inviteFeedback && (
+              <div
+                className={`mb-4 p-2.5 rounded-xl text-xs ${
+                  inviteFeedback.type === 'ok'
+                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                    : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+                }`}
+              >
+                {inviteFeedback.msg}
+              </div>
+            )}
+
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+              {workspaceMembers.map((m) => (
+                <div
+                  key={m.id}
+                  className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80 text-xs"
+                >
+                  <div className="flex items-center gap-2.5 truncate">
+                    <div className="w-7 h-7 rounded-lg bg-indigo-600/25 text-indigo-300 border border-indigo-500/30 flex items-center justify-center font-bold">
+                      {m.user.firstName?.[0]}
+                    </div>
+                    <div className="truncate">
+                      <div className="font-semibold text-slate-200 truncate">
+                        {m.user.firstName} {m.user.lastName}
+                      </div>
+                      <div className="text-[10px] text-slate-500 truncate">{m.user.email}</div>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+                    {m.role}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Command Palette, Task Detail Modal & Real-Time Socket Manager */}
       <CommandPalette
         isOpen={showCommandPalette}
         onClose={() => setShowCommandPalette(false)}
       />
       <TaskDetailModal />
+      <RealtimeManager />
     </div>
   );
 }

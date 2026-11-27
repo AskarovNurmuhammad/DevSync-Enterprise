@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
+import { EventsGateway } from '../realtime/events.gateway';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
@@ -11,6 +13,8 @@ export class TasksService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cache: CacheService,
+    private readonly eventsGateway: EventsGateway,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async createTask(userId: string, dto: CreateTaskDto) {
@@ -81,6 +85,19 @@ export class TasksService {
     });
 
     await this.cache.invalidateByPrefix(`tasks:project:${dto.projectId}`);
+    this.eventsGateway.emitToProject(dto.projectId, 'task:created', task);
+
+    if (dto.assigneeId && dto.assigneeId !== userId) {
+      await this.notifications.createNotification({
+        userId: dto.assigneeId,
+        workspaceId: project.workspaceId,
+        title: `Yangi vazifa biriktirildi (${project.key}-${task.taskNumber})`,
+        message: task.title,
+        type: 'TASK_ASSIGNED',
+        entityId: task.id,
+      });
+    }
+
     return task;
   }
 
@@ -345,6 +362,19 @@ export class TasksService {
     });
 
     await this.cache.invalidateByPrefix(`tasks:project:${task.projectId}`);
+    this.eventsGateway.emitToProject(task.projectId, 'task:updated', updated);
+
+    if (dto.assigneeId && dto.assigneeId !== task.assigneeId && dto.assigneeId !== userId) {
+      await this.notifications.createNotification({
+        userId: dto.assigneeId,
+        workspaceId: task.project.workspaceId,
+        title: `Vazifa sizga biriktirildi (${task.project.key}-${task.taskNumber})`,
+        message: updated.title,
+        type: 'TASK_ASSIGNED',
+        entityId: task.id,
+      });
+    }
+
     return updated;
   }
 
@@ -383,6 +413,11 @@ export class TasksService {
     });
 
     await this.cache.invalidateByPrefix(`tasks:project:${task.projectId}`);
+    this.eventsGateway.emitToProject(task.projectId, 'task:statusChanged', {
+      taskId: task.id,
+      status: dto.status,
+      orderIndex: dto.orderIndex,
+    });
     return updatedTask;
   }
 
@@ -414,6 +449,7 @@ export class TasksService {
     });
 
     await this.cache.invalidateByPrefix(`tasks:project:${task.projectId}`);
+    this.eventsGateway.emitToProject(task.projectId, 'task:deleted', { taskId });
     return { message: 'Vazifa muvaffaqiyatli o‘chirildi' };
   }
 }

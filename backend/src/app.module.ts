@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { CacheModule } from './cache/cache.module';
+import { RealtimeModule } from './realtime/realtime.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { WorkspacesModule } from './workspaces/workspaces.module';
@@ -18,6 +20,8 @@ import { UploadsModule } from './uploads/uploads.module';
     }),
     PrismaModule,
     CacheModule,
+    RealtimeModule,
+    NotificationsModule,
     AuthModule,
     UsersModule,
     WorkspacesModule,

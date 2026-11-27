@@ -100,9 +100,16 @@ export interface PaginationMeta {
   totalPages: number;
 }
 
+export interface WorkspaceMemberItem {
+  id: string;
+  role: string;
+  user: UserSummary;
+}
+
 interface WorkspaceState {
   workspaces: Workspace[];
   activeWorkspace: Workspace | null;
+  workspaceMembers: WorkspaceMemberItem[];
   projects: Project[];
   activeProject: Project | null;
   tasks: Task[];
@@ -116,6 +123,8 @@ interface WorkspaceState {
   fetchWorkspaces: () => Promise<void>;
   selectWorkspace: (workspace: Workspace) => void;
   createWorkspace: (name: string, description?: string) => Promise<boolean>;
+  fetchWorkspaceMembers: (workspaceId: string) => Promise<void>;
+  inviteMember: (email: string, role?: string) => Promise<{ ok: boolean; error?: string }>;
 
   fetchProjects: (workspaceId: string) => Promise<void>;
   selectProject: (project: Project) => void;
@@ -145,11 +154,18 @@ interface WorkspaceState {
 
   uploadAttachment: (taskId: string, file: File) => Promise<boolean>;
   deleteAttachment: (taskId: string, attachmentId: string) => Promise<boolean>;
+
+  applyRemoteTaskCreated: (task: Task) => void;
+  applyRemoteTaskUpdated: (task: Task) => void;
+  applyRemoteTaskStatusChanged: (taskId: string, status: TaskStatus) => void;
+  applyRemoteTaskDeleted: (taskId: string) => void;
+  applyRemoteCommentAdded: (taskId: string, comment: TaskComment) => void;
 }
 
 export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   workspaces: [],
   activeWorkspace: null,
+  workspaceMembers: [],
   projects: [],
   activeProject: null,
   tasks: [],
@@ -178,6 +194,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
 
       if (nextActive && !get().activeProject) {
         get().fetchProjects(nextActive.id);
+        get().fetchWorkspaceMembers(nextActive.id);
       }
     } catch {
       set({ isLoading: false });
@@ -187,6 +204,29 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   selectWorkspace: (workspace: Workspace) => {
     set({ activeWorkspace: workspace, activeProject: null, tasks: [], selectedTask: null });
     get().fetchProjects(workspace.id);
+    get().fetchWorkspaceMembers(workspace.id);
+  },
+
+  fetchWorkspaceMembers: async (workspaceId: string) => {
+    try {
+      const res = await api.get(`/workspaces/${workspaceId}`);
+      set({ workspaceMembers: res.data.members || [] });
+    } catch {
+      set({ workspaceMembers: [] });
+    }
+  },
+
+  inviteMember: async (email: string, role = 'MEMBER') => {
+    const activeWorkspace = get().activeWorkspace;
+    if (!activeWorkspace) return { ok: false, error: 'Ish maydoni tanlanmagan' };
+    try {
+      await api.post(`/workspaces/${activeWorkspace.id}/members`, { email, role });
+      await get().fetchWorkspaceMembers(activeWorkspace.id);
+      return { ok: true };
+    } catch (err: any) {
+      const message = err.response?.data?.message || 'Taklif yuborishda xatolik';
+      return { ok: false, error: Array.isArray(message) ? message.join(', ') : message };
+    }
   },
 
   createWorkspace: async (name: string, description?: string) => {
@@ -433,5 +473,67 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     } catch {
       return false;
     }
+  },
+
+  applyRemoteTaskCreated: (task: Task) => {
+    set((state) => {
+      if (state.activeProject?.id !== task.projectId) return state;
+      if (state.tasks.some((t) => t.id === task.id)) return state;
+      return { tasks: [task, ...state.tasks] };
+    });
+  },
+
+  applyRemoteTaskUpdated: (task: Task) => {
+    set((state) => ({
+      tasks: state.tasks.map((t) => (t.id === task.id ? { ...t, ...task } : t)),
+      selectedTask: state.selectedTask?.id === task.id ? { ...state.selectedTask, ...task } : state.selectedTask,
+    }));
+  },
+
+  applyRemoteTaskStatusChanged: (taskId: string, status: TaskStatus) => {
+    set((state) => ({
+      tasks: state.tasks.map((t) => (t.id === taskId ? { ...t, status } : t)),
+      selectedTask: state.selectedTask?.id === taskId ? { ...state.selectedTask, status } : state.selectedTask,
+    }));
+  },
+
+  applyRemoteTaskDeleted: (taskId: string) => {
+    set((state) => ({
+      tasks: state.tasks.filter((t) => t.id !== taskId),
+      paginatedTasks: state.paginatedTasks.filter((t) => t.id !== taskId),
+      selectedTask: state.selectedTask?.id === taskId ? null : state.selectedTask,
+    }));
+  },
+
+  applyRemoteCommentAdded: (taskId: string, comment: TaskComment) => {
+    set((state) => {
+      const updatedTasks = state.tasks.map((t) => {
+        if (t.id !== taskId) return t;
+        return {
+          ...t,
+          _count: {
+            attachments: t._count?.attachments || 0,
+            comments: (t._count?.comments || 0) + 1,
+          },
+        };
+      });
+
+      if (!state.selectedTask || state.selectedTask.id !== taskId) {
+        return { tasks: updatedTasks };
+      }
+
+      const existing = state.selectedTask.comments || [];
+      if (existing.some((c) => c.id === comment.id)) {
+        return { tasks: updatedTasks };
+      }
+
+      return {
+        tasks: updatedTasks,
+        selectedTask: {
+          ...state.selectedTask,
+          comments: [...existing, comment],
+        },
+      };
+    });
   },
 }));

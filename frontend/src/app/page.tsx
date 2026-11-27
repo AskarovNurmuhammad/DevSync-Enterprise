@@ -32,8 +32,8 @@ export default function HomePage() {
     { day: 'Day 1', title: 'System Architecture & Data Modeling', status: 'Bajarildi ✓', current: false, completed: true },
     { day: 'Day 2', title: 'Multi-Tenant Auth & RBAC Security', status: 'Bajarildi ✓', current: false, completed: true },
     { day: 'Day 3', title: 'Core Business APIs & Dashboard Layout', status: 'Bajarildi ✓', current: false, completed: true },
-    { day: 'Day 4', title: 'Advanced Filters, Pagination & S3 Storage', status: 'Bajarildi ✓ (Day 4)', current: true, completed: true },
-    { day: 'Day 5', title: 'WebSockets Live Board & Notifications', status: 'Kutilmoqda', current: false, completed: false },
+    { day: 'Day 4', title: 'Advanced Filters, Pagination & S3 Storage', status: 'Bajarildi ✓', current: false, completed: true },
+    { day: 'Day 5', title: 'WebSockets Live Board & Notifications', status: 'Bajarildi ✓ (Day 5)', current: true, completed: true },
     { day: 'Day 6', title: 'Admin Analytics, Audit Logs & PDF Reports', status: 'Kutilmoqda', current: false, completed: false },
     { day: 'Day 7', title: 'Docker Orchestration & CI/CD Production', status: 'Kutilmoqda', current: false, completed: false },
   ];
@@ -99,7 +99,7 @@ export default function HomePage() {
 
           <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 ml-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Day 4 Active
+            Day 5 Active
           </span>
         </div>
       </header>
@@ -184,7 +184,7 @@ export default function HomePage() {
           </div>
           <div className="text-xs font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/50 px-3 py-1.5 rounded-lg flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-            Sprint Progress: 57% (Day 4 / 7)
+            Sprint Progress: 71% (Day 5 / 7)
           </div>
         </div>
 
