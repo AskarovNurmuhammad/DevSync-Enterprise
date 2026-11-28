@@ -70,7 +70,7 @@ flowchart TD
 - [x] **3-kun:** Asosiy Biznes API (Workspaces, Projects, Tasks CRUD) va Frontend Dashboard (Responsive Sidebar, Navbar, Workspace Switcher, Interaktiv Kanban doskasi).
 - [x] **4-kun:** Kengaytirilgan qidiruv (`Ctrl+K`), Server-side pagination, Vazifa tafsilotlari modali, Izohlar (Comments), Fayl yuklash (Uploads) va Keshlash (Cache).
 - [x] **5-kun:** Real-Time WebSockets (`Socket.io`), Interaktiv Drag & Drop Kanban board, Jonli bildirishnomalar (Notifications) va Jamoaga a'zo taklif qilish.
-- [ ] **6-kun:** Katta Admin Analitika paneli, Audit loglar, Hisobotlarni PDF/Excel ko'rinishida eksport qilish.
+- [x] **6-kun:** Admin Analitika paneli (7 kunlik grafik, loyiha va jamoa samaradorligi), Audit loglar jurnali va hisobotlarni CSV/PDF eksport qilish.
 - [ ] **7-kun:** Docker Compose orkestratsiyasi, CI/CD pipeline, Testlar va yakuniy Production deployment.
 
 ---

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useWorkspaceStore } from '@/store/workspaceStore';
 import { useNotificationStore } from '@/store/notificationStore';
@@ -22,6 +22,7 @@ import {
   X,
   CheckCheck,
   UserPlus,
+  BarChart3,
 } from 'lucide-react';
 
 export default function DashboardLayout({
@@ -30,6 +31,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, isAuthenticated, logout, initializeAuth } = useAuthStore();
   const {
     workspaces,
@@ -130,7 +132,7 @@ export default function DashboardLayout({
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-[#0d131f] border-r border-slate-800/80 flex flex-col justify-between transition-transform duration-300 ease-in-out ${
+        className={`print:hidden fixed lg:static inset-y-0 left-0 z-50 w-64 bg-[#0d131f] border-r border-slate-800/80 flex flex-col justify-between transition-transform duration-300 ease-in-out ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
@@ -197,10 +199,25 @@ export default function DashboardLayout({
             <nav className="space-y-1">
               <Link
                 href="/dashboard"
-                className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs text-white bg-slate-800/60 font-medium"
+                className={`flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-medium transition-colors ${
+                  pathname === '/dashboard'
+                    ? 'text-white bg-slate-800/70 border border-slate-700/50'
+                    : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+                }`}
               >
                 <LayoutDashboard className="w-4 h-4 text-blue-400" />
                 <span>Kanban Doska</span>
+              </Link>
+              <Link
+                href="/dashboard/analytics"
+                className={`flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-medium transition-colors ${
+                  pathname === '/dashboard/analytics'
+                    ? 'text-white bg-slate-800/70 border border-slate-700/50'
+                    : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+                }`}
+              >
+                <BarChart3 className="w-4 h-4 text-emerald-400" />
+                <span>Analitika va Audit</span>
               </Link>
               <button
                 onClick={() => setShowMembersModal(true)}
@@ -300,7 +317,7 @@ export default function DashboardLayout({
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Top Navbar */}
-        <header className="h-14 border-b border-slate-800/80 bg-[#0d131f]/70 backdrop-blur-md px-4 md:px-6 flex items-center justify-between flex-shrink-0">
+        <header className="print:hidden h-14 border-b border-slate-800/80 bg-[#0d131f]/70 backdrop-blur-md px-4 md:px-6 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsSidebarOpen(true)}
